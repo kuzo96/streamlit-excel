@@ -82,7 +82,7 @@ authenticator.logout("⏻ Đăng xuất", "sidebar")
 # ================== CACHE LOAD ALL FILES ==================
 @st.cache_data(show_spinner="📂 Đang load & cache toàn bộ dữ liệu...")
 #def load_all_files():
-###
+
 def load_all_files(_signature):
     rows = []
     for fname in os.listdir(SAVE_DIR):
