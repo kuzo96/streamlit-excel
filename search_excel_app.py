@@ -82,7 +82,11 @@ authenticator.logout("⏻ Đăng xuất", "sidebar")
 # ================== CACHE LOAD ALL FILES ==================
 @st.cache_data(show_spinner="📂 Đang load & cache toàn bộ dữ liệu...")
 #def load_all_files():
+<<<<<<< HEAD
 def load_all_files(_signature):    
+=======
+def load_all_files(_signature):
+>>>>>>> 1a810b1 (update cache real)
     rows = []
     for fname in os.listdir(SAVE_DIR):
         if not fname.endswith((".csv", ".xlsx", ".xls")):
@@ -121,9 +125,13 @@ file_signature = str([
     (f, os.path.getmtime(os.path.join(SAVE_DIR, f)))
     for f in os.listdir(SAVE_DIR)
 ])
+<<<<<<< HEAD
 
 df_all = load_all_files(file_signature)
+=======
+>>>>>>> 1a810b1 (update cache real)
 
+df_all = load_all_files(file_signature)
 # ================== FILE LIST ==================
 saved_files = sorted(
     f for f in os.listdir(SAVE_DIR)
