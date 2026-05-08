@@ -83,7 +83,7 @@ authenticator.logout("⏻ Đăng xuất", "sidebar")
 @st.cache_data(show_spinner="📂 Đang load & cache toàn bộ dữ liệu...")
 #def load_all_files():
 
-def load_all_files(_signature):
+def load_all_files(file_signature):
     rows = []
     for fname in os.listdir(SAVE_DIR):
         if not fname.endswith((".csv", ".xlsx", ".xls")):
@@ -172,7 +172,7 @@ if uploads:
     for f in uploads:
         with open(os.path.join(SAVE_DIR, f.name), "wb") as out:
             out.write(f.getbuffer())
-    st.cache_data.clear()
+    #st.cache_data.clear()
     st.success("✅ Upload thành công")
     st.rerun()
 
@@ -186,7 +186,7 @@ if saved_files:
             st.sidebar.error("⛔ Không có quyền")
         else:
             os.remove(os.path.join(SAVE_DIR, del_file))
-            st.cache_data.clear()
+            #st.cache_data.clear()
             st.sidebar.success("✅ Đã xoá file")
             st.rerun()
 
@@ -235,7 +235,7 @@ with st.expander("➕ Thêm dòng mới"):
             with pd.ExcelWriter(file_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as w:
                 df_updated.to_excel(w, sheet_name=sheet, index=False)
 
-        st.cache_data.clear()
+        #st.cache_data.clear()
         st.success("✅ Đã thêm dòng")
         st.rerun()
 
@@ -254,7 +254,7 @@ with st.expander("➕ Thêm cột mới"):
                 with pd.ExcelWriter(file_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as w:
                     df.to_excel(w, sheet_name=sheet, index=False)
 
-            st.cache_data.clear()
+            #st.cache_data.clear()
             st.success(f"✅ Đã thêm cột '{new_col_name}'")
             st.rerun()
         else:
@@ -279,7 +279,7 @@ with st.expander("🗑️ Xoá dòng"):
                 with pd.ExcelWriter(file_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as w:
                     df_updated.to_excel(w, sheet_name=sheet, index=False)
 
-            st.cache_data.clear()
+            #st.cache_data.clear()
             st.success(f"✅ Đã xoá dòng {row_index}")
             st.rerun()
     else:
@@ -304,7 +304,7 @@ with st.expander("🗑️ Xoá cột"):
                 with pd.ExcelWriter(file_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as w:
                     df_updated.to_excel(w, sheet_name=sheet, index=False)
 
-            st.cache_data.clear()
+            #st.cache_data.clear()
             st.success(f"✅ Đã xoá cột '{col_to_delete}'")
             st.rerun()
     else:
@@ -318,7 +318,7 @@ if st.button("💾 Lưu thay đổi"):
         with pd.ExcelWriter(file_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as w:
             edited.to_excel(w, sheet_name=sheet, index=False)
 
-    st.cache_data.clear()
+    #st.cache_data.clear()
     st.success("✅ Đã lưu file")
     st.rerun()
 
