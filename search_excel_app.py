@@ -197,13 +197,15 @@ if query:
             # reset index
             res = res.reset_index(drop=True)
             st.success(f"Tìm thấy {len(res)} kết quả")
-
+            # set giá trị độ cao của bảng
+            height = min(max(120, len(res) * 35 + 40), 500)
             st.dataframe(
                 # res,
                 # use_container_width=True,
                 # height=600
                 res,
                 use_container_width=True
+                height=height
             )
 
         else:
