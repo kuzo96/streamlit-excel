@@ -192,13 +192,17 @@ if query:
             # bỏ cột rỗng
             res = res.loc[:, (res != "").any(axis=0)]
 
+            # bỏ dòng rỗng
+            res = res.loc[(res != "").any(axis=1)]
+            # reset index
+            res = res.reset_index(drop=True)
             st.success(f"Tìm thấy {len(res)} kết quả")
 
             st.dataframe(
                 # res,
                 # use_container_width=True,
                 # height=600
-                res.reset_index(drop=True),
+                res,
                 use_container_width=True
             )
 
