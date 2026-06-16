@@ -2,10 +2,12 @@ import streamlit as st
 import pandas as pd
 import streamlit_authenticator as stauth
 import os
+import re
 
+# Version 26.6.16
 # ================== CONFIG ==================
 st.set_page_config(page_title="Tìm IP", layout="wide")
-
+##
 # ----------- BACKGROUND -----------
 st.markdown("""
 <style>
@@ -21,7 +23,7 @@ section.main > div {
 }
 </style>
 """, unsafe_allow_html=True)
-
+#Test7
 # ================== DATA DIR ==================
 BASE_DATA_DIR = os.environ.get("DATA_DIR", "/opt/streamlit-data")
 
@@ -81,7 +83,9 @@ authenticator.logout("⏻ Đăng xuất", "sidebar")
 
 # ================== CACHE LOAD ALL FILES ==================
 @st.cache_data(show_spinner="📂 Đang load & cache toàn bộ dữ liệu...")
-def load_all_files():
+#def load_all_files():
+
+def load_all_files(file_signature):
     rows = []
     for fname in os.listdir(SAVE_DIR):
         if not fname.endswith((".csv", ".xlsx", ".xls")):
@@ -96,7 +100,12 @@ def load_all_files():
             else:
                 xls = pd.ExcelFile(path)
                 for s in xls.sheet_names:
-                    df = xls.parse(s, dtype=str).fillna("")
+                    #df = xls.parse(s, dtype=str).fillna("")
+                    df = xls.parse(
+                        s,
+                        dtype=str,
+                        header=0
+                    ).fillna("")
                     df["__file__"] = fname
                     df["__sheet__"] = s
                     rows.append(df)
@@ -115,8 +124,13 @@ def load_all_files():
     )
     return df_all
 
-df_all = load_all_files()
+#df_all = load_all_files()
+file_signature = str([
+    (f, os.path.getmtime(os.path.join(SAVE_DIR, f)))
+    for f in os.listdir(SAVE_DIR)
+])
 
+df_all = load_all_files(file_signature)
 # ================== FILE LIST ==================
 saved_files = sorted(
     f for f in os.listdir(SAVE_DIR)
@@ -128,28 +142,73 @@ st.header("🔎 Tìm kiếm")
 
 query = st.text_input("Nhập từ khoá (IP / hostname / bất kỳ)")
 
+# if query:
+#     if df_all.empty:
+#         st.warning("Chưa có dữ liệu")
+#     else:
+#         q = query.lower().strip()
+
+#         res = df_all[df_all["__search__"].str.contains(q, na=False)]
+
+#         if not res.empty:
+#             # Bỏ cột search
+#             res = res.drop(columns=["__search__"])
+
+#             # Chuẩn hoá dữ liệu rỗng
+#             res = res.fillna("").replace("None", "")
+
+#             # Bỏ cột Unnamed
+#             #res = res.loc[:, ~res.columns.str.contains("^Unnamed")]
+
+#             # Chỉ giữ cột có ít nhất 1 giá trị khác rỗng
+#             res = res.loc[:, (res != "").any(axis=0)]
+
+#             st.dataframe(res, use_container_width=True)
+#         else:
+#             st.warning("Không tìm thấy kết quả")
 if query:
     if df_all.empty:
         st.warning("Chưa có dữ liệu")
     else:
-        q = query.lower().strip()
+        q = query.strip().lower()
 
-        res = df_all[df_all["__search__"].str.contains(q, na=False)]
+        res = df_all[
+            df_all["__search__"].str.contains(
+                re.escape(q),
+                case=False,
+                regex=True,
+                na=False
+            )
+        ]
 
         if not res.empty:
-            # Bỏ cột search
-            res = res.drop(columns=["__search__"])
 
-            # Chuẩn hoá dữ liệu rỗng
+            res = res.drop(
+                columns=["__search__"],
+                errors="ignore"
+            )
+
             res = res.fillna("").replace("None", "")
 
-            # Bỏ cột Unnamed
-            res = res.loc[:, ~res.columns.str.contains("^Unnamed")]
-
-            # Chỉ giữ cột có ít nhất 1 giá trị khác rỗng
+            # bỏ cột rỗng
             res = res.loc[:, (res != "").any(axis=0)]
 
-            st.dataframe(res, use_container_width=True)
+            # bỏ dòng rỗng
+            res = res.loc[(res != "").any(axis=1)]
+            # reset index
+            res = res.reset_index(drop=True)
+            st.success(f"Tìm thấy {len(res)} kết quả")
+            # set giá trị độ cao của bảng
+            height = min(max(120, len(res) * 35 + 40), 500)
+            st.dataframe(
+                # res,
+                # use_container_width=True,
+                # height=600
+                res,
+                use_container_width=True,
+                height=height
+            )
+
         else:
             st.warning("Không tìm thấy kết quả")
 # ================== UPLOAD ==================
@@ -165,7 +224,7 @@ if uploads:
     for f in uploads:
         with open(os.path.join(SAVE_DIR, f.name), "wb") as out:
             out.write(f.getbuffer())
-    st.cache_data.clear()
+    #st.cache_data.clear()
     st.success("✅ Upload thành công")
     st.rerun()
 
@@ -179,7 +238,7 @@ if saved_files:
             st.sidebar.error("⛔ Không có quyền")
         else:
             os.remove(os.path.join(SAVE_DIR, del_file))
-            st.cache_data.clear()
+            #st.cache_data.clear()
             st.sidebar.success("✅ Đã xoá file")
             st.rerun()
 
@@ -228,7 +287,7 @@ with st.expander("➕ Thêm dòng mới"):
             with pd.ExcelWriter(file_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as w:
                 df_updated.to_excel(w, sheet_name=sheet, index=False)
 
-        st.cache_data.clear()
+        #st.cache_data.clear()
         st.success("✅ Đã thêm dòng")
         st.rerun()
 
@@ -247,7 +306,7 @@ with st.expander("➕ Thêm cột mới"):
                 with pd.ExcelWriter(file_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as w:
                     df.to_excel(w, sheet_name=sheet, index=False)
 
-            st.cache_data.clear()
+            #st.cache_data.clear()
             st.success(f"✅ Đã thêm cột '{new_col_name}'")
             st.rerun()
         else:
@@ -272,7 +331,7 @@ with st.expander("🗑️ Xoá dòng"):
                 with pd.ExcelWriter(file_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as w:
                     df_updated.to_excel(w, sheet_name=sheet, index=False)
 
-            st.cache_data.clear()
+            #st.cache_data.clear()
             st.success(f"✅ Đã xoá dòng {row_index}")
             st.rerun()
     else:
@@ -297,7 +356,7 @@ with st.expander("🗑️ Xoá cột"):
                 with pd.ExcelWriter(file_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as w:
                     df_updated.to_excel(w, sheet_name=sheet, index=False)
 
-            st.cache_data.clear()
+            #st.cache_data.clear()
             st.success(f"✅ Đã xoá cột '{col_to_delete}'")
             st.rerun()
     else:
@@ -311,7 +370,7 @@ if st.button("💾 Lưu thay đổi"):
         with pd.ExcelWriter(file_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as w:
             edited.to_excel(w, sheet_name=sheet, index=False)
 
-    st.cache_data.clear()
+    #st.cache_data.clear()
     st.success("✅ Đã lưu file")
     st.rerun()
 
