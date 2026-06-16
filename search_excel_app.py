@@ -195,9 +195,11 @@ if query:
             st.success(f"Tìm thấy {len(res)} kết quả")
 
             st.dataframe(
-                res,
-                use_container_width=True,
-                height=600
+                # res,
+                # use_container_width=True,
+                # height=600
+                res.reset_index(drop=True),
+                use_container_width=True
             )
 
         else:
