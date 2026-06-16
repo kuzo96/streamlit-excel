@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import streamlit_authenticator as stauth
 import os
+import re
 
 # ================== CONFIG ==================
 st.set_page_config(page_title="Tìm IP", layout="wide")
@@ -98,7 +99,12 @@ def load_all_files(file_signature):
             else:
                 xls = pd.ExcelFile(path)
                 for s in xls.sheet_names:
-                    df = xls.parse(s, dtype=str).fillna("")
+                    #df = xls.parse(s, dtype=str).fillna("")
+                    df = xls.parse(
+                        s,
+                        dtype=str,
+                        header=0
+                    ).fillna("")
                     df["__file__"] = fname
                     df["__sheet__"] = s
                     rows.append(df)
@@ -135,28 +141,65 @@ st.header("🔎 Tìm kiếm")
 
 query = st.text_input("Nhập từ khoá (IP / hostname / bất kỳ)")
 
+# if query:
+#     if df_all.empty:
+#         st.warning("Chưa có dữ liệu")
+#     else:
+#         q = query.lower().strip()
+
+#         res = df_all[df_all["__search__"].str.contains(q, na=False)]
+
+#         if not res.empty:
+#             # Bỏ cột search
+#             res = res.drop(columns=["__search__"])
+
+#             # Chuẩn hoá dữ liệu rỗng
+#             res = res.fillna("").replace("None", "")
+
+#             # Bỏ cột Unnamed
+#             #res = res.loc[:, ~res.columns.str.contains("^Unnamed")]
+
+#             # Chỉ giữ cột có ít nhất 1 giá trị khác rỗng
+#             res = res.loc[:, (res != "").any(axis=0)]
+
+#             st.dataframe(res, use_container_width=True)
+#         else:
+#             st.warning("Không tìm thấy kết quả")
 if query:
     if df_all.empty:
         st.warning("Chưa có dữ liệu")
     else:
-        q = query.lower().strip()
+        q = query.strip().lower()
 
-        res = df_all[df_all["__search__"].str.contains(q, na=False)]
+        res = df_all[
+            df_all["__search__"].str.contains(
+                re.escape(q),
+                case=False,
+                regex=True,
+                na=False
+            )
+        ]
 
         if not res.empty:
-            # Bỏ cột search
-            res = res.drop(columns=["__search__"])
 
-            # Chuẩn hoá dữ liệu rỗng
+            res = res.drop(
+                columns=["__search__"],
+                errors="ignore"
+            )
+
             res = res.fillna("").replace("None", "")
 
-            # Bỏ cột Unnamed
-            res = res.loc[:, ~res.columns.str.contains("^Unnamed")]
-
-            # Chỉ giữ cột có ít nhất 1 giá trị khác rỗng
+            # bỏ cột rỗng
             res = res.loc[:, (res != "").any(axis=0)]
 
-            st.dataframe(res, use_container_width=True)
+            st.success(f"Tìm thấy {len(res)} kết quả")
+
+            st.dataframe(
+                res,
+                use_container_width=True,
+                height=600
+            )
+
         else:
             st.warning("Không tìm thấy kết quả")
 # ================== UPLOAD ==================
