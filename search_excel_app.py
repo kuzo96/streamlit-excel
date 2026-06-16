@@ -205,7 +205,7 @@ if query:
                 # use_container_width=True,
                 # height=600
                 res,
-                use_container_width=True
+                use_container_width=True,
                 height=height
             )
 
