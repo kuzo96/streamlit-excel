@@ -4,6 +4,7 @@ import streamlit_authenticator as stauth
 import os
 import re
 
+# Version 26.6.16
 # ================== CONFIG ==================
 st.set_page_config(page_title="Tìm IP", layout="wide")
 ##
